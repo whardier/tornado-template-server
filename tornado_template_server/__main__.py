@@ -31,13 +31,15 @@ define('config', type=str, help='Path to config file', callback=config_callback,
 
 define('debug', default=False, help='Debug', type=bool, group='Application')
 
+define('show_source_keyword', default=None, help='GET keyword to show original source', type=str, group='Service')
+
 define('template_path', default='./templates/', help='Template Files Directory', type=str, group='Content')
 define('static_path', default='./static/', help='Static Files Directory', type=str, group='Content')
 
 define('listen_port', default=8000, help='Listen Port', type=int, group='HTTP Server')
 define('listen_host', default='localhost', help='Listen Host', type=str, group='HTTP Server')
 
-define('template_vars', default={'name': 'Tornado Template Server', 'brand': 'tornado-template-server'}, type=dict, group='Globals')
+define('template_vars', default={'name': 'Tornado Template Server', 'brand': 'tornado-template-server'}, type=dict, group='Template')
 
 ## ┏┓ ┏━┓┏━┓┏━╸╻ ╻┏━┓┏┓╻╺┳┓╻  ┏━╸┏━┓
 ## ┣┻┓┣━┫┗━┓┣╸ ┣━┫┣━┫┃┗┫ ┃┃┃  ┣╸ ┣┳┛
@@ -85,7 +87,11 @@ class TemplateHandler(BaseHandler):
         for potential_path in potential_paths:
             if os.path.exists(potential_path) and os.path.isfile(potential_path):
                 #Let this fail if needed
-                self.render(potential_path)
+                if self.settings.get('show_source_keyword') and self.get_argument(self.settings.get('show_source_keyword')):
+                    self.set_header("Content-Type", "text/plain")
+                    self.write(open(potential_path).read())
+                else:
+                    self.render(potential_path)
                 return
 
         self.send_error(404)
