@@ -2,6 +2,7 @@
 
 from __future__ import print_function
 
+import os
 import sys
 
 import pprint
@@ -29,6 +30,9 @@ def config_callback(path):
 define('config', type=str, help='Path to config file', callback=config_callback, group='Config file')
 
 define('debug', default=False, help='Debug', type=bool, group='Application')
+
+define('template_path', default='./templates/', help='Template Files Directory', type=str, group='Content')
+define('static_path', default='./static/', help='Static Files Directory', type=str, group='Content')
 
 define('listen_port', default=8000, help='Listen Port', type=int, group='HTTP Server')
 define('listen_host', default='localhost', help='Listen Host', type=str, group='HTTP Server')
@@ -67,26 +71,25 @@ class PageErrorHandler(BaseHandler):
 ##  ╹ ┗━╸╹ ╹╹  ┗━╸╹ ╹ ╹ ┗━╸╹ ╹╹ ╹╹ ╹╺┻┛┗━╸┗━╸╹┗╸
 
 class TemplateHandler(BaseHandler):
+
+    @tornado.web.removeslash
     def get(self, path, *args, **kwargs):
 
-        try:
-            try:
-                try:
-                    output = self.render_string('index.html.tpl')
-                except:
-                    output = self.render_string('index.html')
-            except:
-                try:
-                    output = self.render_string(path + ".tpl")
-                except:
-                    output = self.render_string(path)
-        except:
-            self.send_error(404)
-        finally:
-            try:
+        potential_paths = [
+            os.path.join(self.get_template_path(), path + '.tpl'),
+            os.path.join(self.get_template_path(), path),
+            os.path.join(self.get_template_path(), path, 'index.html.tpl'),
+            os.path.join(self.get_template_path(), path, 'index.html')
+        ]
+
+        for potential_path in potential_paths:
+            if os.path.exists(potential_path) and os.path.isfile(potential_path):
+                #Let this fail if needed
+                output = self.render_string(potential_path)
                 self.write(output)
-            except:
-                self.send_error(500)
+                return
+
+        self.send_error(404)
 
 ## ┏━┓┏━╸┏━┓╻ ╻┏━╸┏━┓
 ## ┗━┓┣╸ ┣┳┛┃┏┛┣╸ ┣┳┛
@@ -114,8 +117,6 @@ def main():
     ]
 
     settings = dict(
-        static_path = static_path,
-        template_path = template_path,
         ui_modules = {'static_file_data_uri_base64': tornado_data_uri.uimodules.static_file_data_uri_base64},
         **options.as_dict()
     )
