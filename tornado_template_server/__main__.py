@@ -52,7 +52,7 @@ class BaseHandler(tornado.web.RequestHandler):
     def get_template_namespace(self):
         namespace = super(BaseHandler, self).get_template_namespace()
         namespace.update({
-            'template_vars': self.settings.get('template_vars'),
+            'template_vars': self.settings['template_vars'],
         })
 
         return namespace
@@ -87,7 +87,7 @@ class TemplateHandler(BaseHandler):
         for potential_path in potential_paths:
             if os.path.exists(potential_path) and os.path.isfile(potential_path):
                 #Let this fail if needed
-                if self.settings.get('show_source_keyword') and self.get_argument(self.settings.get('show_source_keyword')):
+                if self.settings['show_source_keyword'] and self.settings['show_source_keyword'] in self.request.arguments:
                     self.set_header("Content-Type", "text/plain")
                     self.write(open(potential_path).read())
                 else:
