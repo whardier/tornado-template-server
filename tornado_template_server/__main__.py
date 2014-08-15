@@ -15,10 +15,15 @@ import tornado.options
 import tornado.log
 import tornado.escape
 
+import magic
+import mimetypes
+
 import tornado_data_uri.uimodules
 
 from tornado.options import options
 from tornado.options import define
+
+mimetypes.init()
 
 ## ┏━┓┏━┓╺┳╸╻┏━┓┏┓╻┏━┓
 ## ┃ ┃┣━┛ ┃ ┃┃ ┃┃┗┫┗━┓
@@ -93,6 +98,16 @@ class TemplateHandler(BaseHandler):
                     self.set_header("Content-Type", "text/plain")
                     self.write(open(full_path).read())
                 else:
+                    #Test with magic first
+                    mime_type = magic.from_file(full_path, mime=True)
+
+                    #If any of the listed try to do a mimetypes lookup
+                    if mime_type in ['text/plain',]:
+                        _type, _encoding = mimetypes.guess_type(full_path, strict=True)
+                        if _type:
+                            mime_type = _type
+
+                    self.set_header("Content-Type", mime_type)
                     self.render(potential_path)
                 return
 

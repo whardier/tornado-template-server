@@ -15,6 +15,7 @@ setup(
     install_requires=[
         'tornado',
         'tornado_data_uri',
+        'python-magic', #redundant but explicit
     ],
     entry_points={
         'console_scripts': [
