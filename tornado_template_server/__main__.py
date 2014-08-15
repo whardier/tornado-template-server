@@ -78,18 +78,20 @@ class TemplateHandler(BaseHandler):
     def get(self, path, *args, **kwargs):
 
         potential_paths = [
-            os.path.join(self.get_template_path(), path + '.tpl'),
-            os.path.join(self.get_template_path(), path),
-            os.path.join(self.get_template_path(), path, 'index.html.tpl'),
-            os.path.join(self.get_template_path(), path, 'index.html')
+            path + '.tpl',
+            path,
+            os.path.join(path, 'index.html.tpl'),
+            os.path.join(path, 'index.html')
         ]
 
         for potential_path in potential_paths:
-            if os.path.exists(potential_path) and os.path.isfile(potential_path):
+            full_path = os.path.join(self.get_template_path(), potential_path)
+
+            if os.path.exists(full_path) and os.path.isfile(full_path):
                 #Let this fail if needed
                 if self.settings['show_source_keyword'] and self.settings['show_source_keyword'] in self.request.arguments:
                     self.set_header("Content-Type", "text/plain")
-                    self.write(open(potential_path).read())
+                    self.write(open(full_path).read())
                 else:
                     self.render(potential_path)
                 return
