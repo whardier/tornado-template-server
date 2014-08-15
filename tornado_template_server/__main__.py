@@ -85,8 +85,7 @@ class TemplateHandler(BaseHandler):
         for potential_path in potential_paths:
             if os.path.exists(potential_path) and os.path.isfile(potential_path):
                 #Let this fail if needed
-                output = self.render_string(potential_path)
-                self.write(output)
+                self.render(potential_path)
                 return
 
         self.send_error(404)
